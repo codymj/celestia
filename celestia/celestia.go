@@ -272,7 +272,7 @@ func TrueAnomaly(jd float64, p int) (float64, error) {
 	return M + C, err
 }
 
-// EclipticLongitude (λ) is the position along the ecliptic relative to the
+// EclipticLongitude (l) is the position along the ecliptic relative to the
 // vernal equinox (in degrees).
 //
 //	jd: Julian day.
@@ -296,12 +296,12 @@ func EclipticLongitude(jd float64, p int) (float64, error) {
 
 	L := M + w + 180
 
-	λ := L + C
-	for λ > 360.0 {
-		λ = math.Mod(λ, 360.0)
+	l := L + C
+	for l > 360.0 {
+		l = math.Mod(l, 360.0)
 	}
 
-	return λ, err
+	return l, err
 }
 
 // Right ascension (a) is the angular distance of a celestial object's hour
@@ -312,7 +312,7 @@ func EclipticLongitude(jd float64, p int) (float64, error) {
 //
 // p: enum of planet (see README).
 func RightAscension(jd float64, p int) (float64, error) {
-	λ, err := EclipticLongitude(jd, p)
+	l, err := EclipticLongitude(jd, p)
 	if err != nil {
 		return 0, err
 	}
@@ -322,5 +322,6 @@ func RightAscension(jd float64, p int) (float64, error) {
 		return 0, err
 	}
 
-	return math.Atan2(math.Sin(λ*RAD)*math.Cos(e*RAD), math.Cos(λ*RAD)), err
+	a := math.Atan2(math.Sin(l*RAD)*math.Cos(e*RAD), math.Cos(l*RAD)) * DEG
+	return a, err
 }

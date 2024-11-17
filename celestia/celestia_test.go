@@ -134,7 +134,7 @@ func TestEclipticLongitude(t *testing.T) {
 		name string
 		jd   float64
 		p    int
-		λ    float64
+		l    float64
 		err  error
 	}{
 		{"ForEarth", 2453097.0, 2, 12.032185297938668, nil},
@@ -143,8 +143,8 @@ func TestEclipticLongitude(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			λ, err := EclipticLongitude(tt.jd, tt.p)
-			assert.Equal(t, tt.λ, λ)
+			l, err := EclipticLongitude(tt.jd, tt.p)
+			assert.Equal(t, tt.l, l)
 			assert.Equal(t, tt.err, err)
 		})
 	}
@@ -159,8 +159,9 @@ func TestRightAscension(t *testing.T) {
 		a    float64
 		err  error
 	}{
-		{"ForEarth", 2457403.5, 3, 11.064870715700355, nil},
-		{"InvalidPlanet", 2457403.5, 12, 0, ErrInvalidEnum},
+		{"ForEarth", 2453097.0, 2, 11.064870715700355, nil},
+		{"ForMars", 2453097.0, 3, 11.860588414833234, nil},
+		{"InvalidPlanet", 2453097.0, 12, 0, ErrInvalidEnum},
 	}
 
 	for _, tt := range tests {

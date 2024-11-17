@@ -61,7 +61,7 @@ The angle between the ecliptic and the celestial equator of the planet.
 | p         | planet enum                         |
 | e         | obliquity of the ecliptic (degrees) |
 
-### EclipticLongitude (λ)
+### EclipticLongitude (l)
 
 The position along the ecliptic relative to the vernal equinox.
 
@@ -69,7 +69,7 @@ The position along the ecliptic relative to the vernal equinox.
 |-----------|------------------------------|
 | jd        | julian day                   |
 | p         | planet enum                  |
-| λ         | ecliptic longitude (degrees) |
+| l         | ecliptic longitude (degrees) |
 
 ### RightAscension (a)
 
