@@ -30,6 +30,7 @@ func TestMeanAnomaly(t *testing.T) {
 		err  error
 	}{
 		{"ForEarth", 2453097.0, 2, 87.18073456000002, nil},
+		{"ForEarth", 2453097.0, 3, 112.65309536000007, nil},
 		{"InvalidPlanet", 2453097.0, 12, 0, ErrInvalidEnum},
 	}
 
@@ -51,6 +52,7 @@ func TestObliquityEcliptic(t *testing.T) {
 		err  error
 	}{
 		{"ForEarth", 2, EEarth, nil},
+		{"ForMars", 3, EMars, nil},
 		{"InvalidPlanet", 12, 0, ErrInvalidEnum},
 	}
 
@@ -72,6 +74,7 @@ func TestPerihelionLongitude(t *testing.T) {
 		err  error
 	}{
 		{"ForEarth", 2, WEarth, nil},
+		{"ForMars", 3, WMars, nil},
 		{"InvalidPlanet", 12, 0, ErrInvalidEnum},
 	}
 
@@ -94,6 +97,7 @@ func TestEquationOfCenter(t *testing.T) {
 		err  error
 	}{
 		{"ForEarth", 2453097.0, 2, 1.9141507379386618, nil},
+		{"ForMars", 2453097.0, 3, 9.409206613394835, nil},
 		{"InvalidPlanet", 2453097.0, 12, 0, ErrInvalidEnum},
 	}
 
@@ -116,6 +120,7 @@ func TestTrueAnomaly(t *testing.T) {
 		err  error
 	}{
 		{"ForEarth", 2453097.0, 2, 89.09488529793867, nil},
+		{"ForMars", 2453097.0, 3, 122.0623019733949, nil},
 		{"InvalidPlanet", 2453097.0, 12, 0, ErrInvalidEnum},
 	}
 
@@ -138,6 +143,7 @@ func TestEclipticLongitude(t *testing.T) {
 		err  error
 	}{
 		{"ForEarth", 2453097.0, 2, 12.032185297938668, nil},
+		{"ForMars", 2453097.0, 3, 13.066401973394875, nil},
 		{"InvalidPlanet", 2453097.0, 12, 0, ErrInvalidEnum},
 	}
 
