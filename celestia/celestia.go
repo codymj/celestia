@@ -22,6 +22,9 @@ import (
 )
 
 const (
+	RAD = math.Pi / 180
+	DEG = 180 / math.Pi
+
 	// MeanAnomaly
 	M0Mercury = 174.7948
 	M1Mercury = 4.09233445
@@ -54,6 +57,44 @@ const (
 	WUranus  = 5.4634
 	WNeptune = 182.2100
 	WPluto   = 184.5484
+
+	// EquationOfCenter
+	C1Mercury = 23.4400
+	C2Mercury = 2.9818
+	C3Mercury = 0.5255
+	C4Mercury = 0.1058
+	C5Mercury = 0.0241
+	C6Mercury = 0.0055
+	C1Venus   = 0.7758
+	C2Venus   = 0.0033
+	C3Venus   = 0.0000
+	C4Venus   = 0.0000
+	C5Venus   = 0.0000
+	C6Venus   = 0.0000
+	C1Earth   = 1.9148
+	C2Earth   = 0.0200
+	C3Earth   = 0.0003
+	C4Earth   = 0.0000
+	C5Earth   = 0.0000
+	C6Earth   = 0.0000
+	C1Mars    = 10.6912
+	C2Mars    = 0.6228
+	C3Mars    = 0.0503
+	C4Mars    = 0.0046
+	C5Mars    = 0.0005
+	C6Mars    = 0.0000
+	C1Jupiter = 5.5549
+	C2Jupiter = 0.1683
+	C3Jupiter = 0.0071
+	C4Jupiter = 0.0003
+	C5Jupiter = 0.0000
+	C6Jupiter = 0.0000
+	C1Saturn  = 6.3585
+	C2Saturn  = 0.2204
+	C3Saturn  = 0.0106
+	C4Saturn  = 0.0006
+	C5Saturn  = 0.0000
+	C6Saturn  = 0.0000
 )
 
 var (
@@ -122,7 +163,7 @@ func ObliquityEcliptic(p int) (float64, error) {
 // (measured on the ecliptic plane) and the argument of periapsis (measured on
 // the orbital plane).
 //
-//	p: enum of the planet.
+// p: enum of planet (see README).
 func PerihelionLongitude(p int) (float64, error) {
 	var w float64
 	var err error
@@ -145,4 +186,141 @@ func PerihelionLongitude(p int) (float64, error) {
 	}
 
 	return w, err
+}
+
+// EquationOfCenter (C) is the angular difference between the actual position of
+// a body in its elliptical orbit and the position it would occupy if its motion
+// were uniform.
+//
+// jd: Julian day.
+//
+// p: enum of planet (see README).
+func EquationOfCenter(jd float64, p int) (float64, error) {
+	M, err := MeanAnomaly(jd, p)
+	if err != nil {
+		return 0, err
+	}
+
+	var C float64
+
+	calc := func(c1, c2, c3, c4, c5, c6, m float64) float64 {
+		return c1*math.Sin(m) + c2*math.Sin(2*m) + c3*math.Sin(3*m) +
+			c4*math.Sin(4*m) + c5*math.Sin(5*m) + c6*math.Sin(6*m)
+	}
+
+	switch p {
+	case 0:
+		C = calc(
+			C1Mercury, C2Mercury, C3Mercury,
+			C4Mercury, C5Mercury, C6Mercury,
+			M*RAD,
+		)
+	case 1:
+		C = calc(
+			C1Venus, C2Venus, C3Venus,
+			C4Venus, C5Venus, C6Venus,
+			M*RAD,
+		)
+	case 2:
+		C = calc(
+			C1Earth, C2Earth, C3Earth,
+			C4Earth, C5Earth, C6Earth,
+			M*RAD,
+		)
+	case 3:
+		C = calc(
+			C1Mars, C2Mars, C3Mars,
+			C4Mars, C5Mars, C6Mars,
+			M*RAD,
+		)
+	case 4:
+		C = calc(
+			C1Jupiter, C2Jupiter, C3Jupiter,
+			C4Jupiter, C5Jupiter, C6Jupiter,
+			M*RAD,
+		)
+	case 5:
+		C = calc(
+			C1Saturn, C2Saturn, C3Saturn,
+			C4Saturn, C5Saturn, C6Saturn,
+			M*RAD,
+		)
+	default:
+		err = ErrInvalidEnum
+	}
+
+	return C, err
+}
+
+// TrueAnomaly (v) is the sum of the mean anomaly (M) and the equation of
+// center (C).
+//
+// jd: Julian day.
+//
+// p: enum of planet (see README).
+func TrueAnomaly(jd float64, p int) (float64, error) {
+	M, err := MeanAnomaly(jd, p)
+	if err != nil {
+		return 0, err
+	}
+
+	C, err := EquationOfCenter(jd, p)
+	if err != nil {
+		return 0, err
+	}
+
+	return M + C, err
+}
+
+// EclipticLongitude (λ) is the position along the ecliptic relative to the
+// vernal equinox (in degrees).
+//
+//	jd: Julian day.
+//
+//	p: enum of planet (see README).
+func EclipticLongitude(jd float64, p int) (float64, error) {
+	M, err := MeanAnomaly(jd, p)
+	if err != nil {
+		return 0, err
+	}
+
+	w, err := PerihelionLongitude(p)
+	if err != nil {
+		return 0, err
+	}
+
+	C, err := EquationOfCenter(jd, p)
+	if err != nil {
+		return 0, err
+	}
+
+	L := M + w + 180
+
+	λ := L + C
+	for λ > 360.0 {
+		λ = math.Mod(λ, 360.0)
+	}
+
+	return λ, err
+}
+
+// Right ascension (a) is the angular distance of a celestial object's hour
+// circle east of the vernal equinox, measured along the celestial equator (in
+// degrees).
+//
+// jd: Julian day.
+//
+// p: enum of planet (see README).
+func RightAscension(jd float64, p int) (float64, error) {
+	λ, err := EclipticLongitude(jd, p)
+	if err != nil {
+		return 0, err
+	}
+
+	e, err := ObliquityEcliptic(p)
+	if err != nil {
+		return 0, err
+	}
+
+	return math.Atan2(math.Sin(λ*RAD)*math.Cos(e*RAD), math.Cos(λ*RAD)), err
 }

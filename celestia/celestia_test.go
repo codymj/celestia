@@ -83,3 +83,91 @@ func TestPerihelionLongitude(t *testing.T) {
 		})
 	}
 }
+
+// EquationOfCenter tests.
+func TestEquationOfCenter(t *testing.T) {
+	tests := []struct {
+		name string
+		jd   float64
+		p    int
+		C    float64
+		err  error
+	}{
+		{"ForEarth", 2453097.0, 2, 1.9141507379386618, nil},
+		{"InvalidPlanet", 2453097.0, 12, 0, ErrInvalidEnum},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			C, err := EquationOfCenter(tt.jd, tt.p)
+			assert.Equal(t, tt.C, C)
+			assert.Equal(t, tt.err, err)
+		})
+	}
+}
+
+// TrueAnomaly tests.
+func TestTrueAnomaly(t *testing.T) {
+	tests := []struct {
+		name string
+		jd   float64
+		p    int
+		v    float64
+		err  error
+	}{
+		{"ForEarth", 2453097.0, 2, 89.09488529793867, nil},
+		{"InvalidPlanet", 2453097.0, 12, 0, ErrInvalidEnum},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			v, err := TrueAnomaly(tt.jd, tt.p)
+			assert.Equal(t, tt.v, v)
+			assert.Equal(t, tt.err, err)
+		})
+	}
+}
+
+// EclipticLongitude tests.
+func TestEclipticLongitude(t *testing.T) {
+	tests := []struct {
+		name string
+		jd   float64
+		p    int
+		λ    float64
+		err  error
+	}{
+		{"ForEarth", 2453097.0, 2, 12.032185297938668, nil},
+		{"InvalidPlanet", 2453097.0, 12, 0, ErrInvalidEnum},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			λ, err := EclipticLongitude(tt.jd, tt.p)
+			assert.Equal(t, tt.λ, λ)
+			assert.Equal(t, tt.err, err)
+		})
+	}
+}
+
+// RightAscension tests.
+func TestRightAscension(t *testing.T) {
+	tests := []struct {
+		name string
+		jd   float64
+		p    int
+		a    float64
+		err  error
+	}{
+		{"ForEarth", 2457403.5, 3, 11.064870715700355, nil},
+		{"InvalidPlanet", 2457403.5, 12, 0, ErrInvalidEnum},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			a, err := RightAscension(tt.jd, tt.p)
+			assert.Equal(t, tt.a, a)
+			assert.Equal(t, tt.err, err)
+		})
+	}
+}
