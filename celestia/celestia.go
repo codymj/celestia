@@ -95,13 +95,27 @@ const (
 	C4Saturn  = 0.0006
 	C5Saturn  = 0.0000
 	C6Saturn  = 0.0000
+
+	// SiderealTime
+	T0Mercury = 132.3282
+	T1Mercury = 6.1385025
+	T0Venus   = 104.9067
+	T1Venus   = -1.4813688
+	T0Earth   = 280.1470
+	T1Earth   = 360.9856235
+	T0Mars    = 313.3827
+	T1Mars    = 350.89198226
+	T0Jupiter = 145.9722
+	T1Jupiter = 870.5360000
+	T0Saturn  = 174.3508
+	T1Saturn  = 810.7939024
 )
 
 var (
 	ErrInvalidEnum = errors.New("invalid planet enum, see README")
 )
 
-// MeanAnomaly (M) calculates the position that the planet would have relative
+// Mean anomaly (M) calculates the position that the planet would have relative
 // to its perihelion if the orbit were a circle.
 //
 // jd: julian day.
@@ -131,7 +145,7 @@ func MeanAnomaly(jd float64, p int) (float64, error) {
 	return M, err
 }
 
-// ObliquityEcliptic (e) is the angle between the ecliptic and the celestial
+// Obliquity ecliptic (e) is the angle between the ecliptic and the celestial
 // equator of the planet.
 //
 // p: enum of planet (see README).
@@ -159,7 +173,7 @@ func ObliquityEcliptic(p int) (float64, error) {
 	return e, err
 }
 
-// PerihelionLongitude (w) is the sum of the longitude of ascending node
+// Perihelion longitude (w) is the sum of the longitude of ascending node
 // (measured on the ecliptic plane) and the argument of periapsis (measured on
 // the orbital plane).
 //
@@ -188,11 +202,11 @@ func PerihelionLongitude(p int) (float64, error) {
 	return w, err
 }
 
-// EquationOfCenter (C) is the angular difference between the actual position of
-// a body in its elliptical orbit and the position it would occupy if its motion
-// were uniform.
+// Equation of center (C) is the angular difference between the actual position
+// of a body in its elliptical orbit and the position it would occupy if its
+// motion were uniform.
 //
-// jd: Julian day.
+// jd: julian day.
 //
 // p: enum of planet (see README).
 func EquationOfCenter(jd float64, p int) (float64, error) {
@@ -252,10 +266,10 @@ func EquationOfCenter(jd float64, p int) (float64, error) {
 	return C, err
 }
 
-// TrueAnomaly (v) is the sum of the mean anomaly (M) and the equation of
+// True anomaly (v) is the sum of the mean anomaly (M) and the equation of
 // center (C).
 //
-// jd: Julian day.
+// jd: julian day.
 //
 // p: enum of planet (see README).
 func TrueAnomaly(jd float64, p int) (float64, error) {
@@ -272,12 +286,12 @@ func TrueAnomaly(jd float64, p int) (float64, error) {
 	return M + C, err
 }
 
-// EclipticLongitude (l) is the position along the ecliptic relative to the
+// Ecliptic longitude (l) is the position along the ecliptic relative to the
 // vernal equinox (in degrees).
 //
-//	jd: Julian day.
+// jd: julian day.
 //
-//	p: enum of planet (see README).
+// p: enum of planet (see README).
 func EclipticLongitude(jd float64, p int) (float64, error) {
 	M, err := MeanAnomaly(jd, p)
 	if err != nil {
@@ -308,7 +322,7 @@ func EclipticLongitude(jd float64, p int) (float64, error) {
 // circle east of the vernal equinox, measured along the celestial equator (in
 // degrees).
 //
-// jd: Julian day.
+// jd: julian day.
 //
 // p: enum of planet (see README).
 func RightAscension(jd float64, p int) (float64, error) {
@@ -323,5 +337,149 @@ func RightAscension(jd float64, p int) (float64, error) {
 	}
 
 	a := math.Atan2(math.Sin(l*RAD)*math.Cos(e*RAD), math.Cos(l*RAD)) * DEG
+
 	return a, err
+}
+
+// Declination (d) determines from which parts of the planet the object can be
+// visible.
+//
+// jd: julian day.
+//
+// p: enum of the planet (see README).
+func Declination(jd float64, p int) (float64, error) {
+	l, err := EclipticLongitude(jd, p)
+	if err != nil {
+		return 0, err
+	}
+
+	e, err := ObliquityEcliptic(p)
+	if err != nil {
+		return 0, err
+	}
+
+	d := math.Atan(math.Sin(l*RAD)*math.Sin(e*RAD)) * DEG
+
+	return d, err
+}
+
+// Sidereal time (theta) is the rotational angle of the planet at your location,
+// relative to the stars and the right ascension that is on the celestial
+// meridian at that moment.
+//
+// jd: julian day.
+//
+// p: enum of the planet (see README).
+//
+// lon: longitude (west).
+func SiderealTime(jd float64, p int, lon float64) (float64, error) {
+	var theta float64
+	var err error
+
+	switch p {
+	case 0:
+		theta = T0Mercury + T1Mercury*(jd-julian.J2000) - lon
+	case 1:
+		theta = T0Venus + T1Venus*(jd-julian.J2000) - lon
+	case 2:
+		theta = T0Earth + T1Earth*(jd-julian.J2000) - lon
+	case 3:
+		theta = T0Mars + T1Mars*(jd-julian.J2000) - lon
+	case 4:
+		theta = T0Jupiter + T1Jupiter*(jd-julian.J2000) - lon
+	case 5:
+		theta = T0Saturn + T1Saturn*(jd-julian.J2000) - lon
+	default:
+		err = ErrInvalidEnum
+	}
+
+	for theta > 360.0 {
+		theta = math.Mod(theta, 360.0)
+	}
+
+	return theta, err
+}
+
+// Hour angle (H) of a celestial body is the difference in right ascension
+// between that body and the meridian (of right ascension) that is due south at
+// that time, indicating how long ago (measured in sidereal time) the celestial
+// body passed through the celestial meridian.
+//
+// jd: julian day.
+//
+// p: enum of the planet (see README).
+//
+// lon: longitude (west).
+func HourAngle(jd float64, p int, lon float64) (float64, error) {
+	theta, err := SiderealTime(jd, p, lon)
+	if err != nil {
+		return 0, err
+	}
+
+	a, err := RightAscension(jd, p)
+	if err != nil {
+		return 0, err
+	}
+
+	return theta - a, err
+}
+
+// Azimuth (A) is the coordinate from the horizontal coordinate system that
+// indicates the direction along the horizon. It is convenient to set 0° in the
+// south and to measure azimuth between −180° and 180°.
+//
+// jd: julian day.
+//
+// p: enum of the planet (see README).
+//
+// lat: latitude (north)
+//
+// lon: longitude (west).
+func Azimuth(jd float64, p int, lat, lon float64) (float64, error) {
+	d, err := Declination(jd, p)
+	if err != nil {
+		return 0, err
+	}
+
+	H, err := HourAngle(jd, p, lon)
+	if err != nil {
+		return 0, err
+	}
+
+	A := math.Atan2(
+		math.Sin(H*RAD),
+		math.Cos(H*RAD)*math.Sin(lat*RAD)-math.Tan(d*RAD)*math.Cos(lat*RAD),
+	) * DEG
+
+	return A, err
+}
+
+// Altitude (h) indicates how high above the horizon a celestial body is. It is
+// 0° at the horizon, 90° at its zenith (straight up) and -90° in the nadir (
+// straight down).
+//
+// jd: julian day.
+//
+// p: enum of the planet (see README).
+//
+// lat: latitude (north)
+//
+// lon: longitude (west).
+func Altitude(jd float64, p int, lat, lon float64) (float64, error) {
+	d, err := Declination(jd, p)
+	if err != nil {
+		return 0, err
+	}
+
+	H, err := HourAngle(jd, p, lon)
+	if err != nil {
+		return 0, err
+	}
+
+	h := math.Asin(
+		math.Sin(lat*RAD)*math.Sin(d*RAD)+
+			math.Cos(lat*RAD)*math.Cos(d*RAD)*math.Cos(H*RAD),
+	) * DEG
+
+	return h, err
 }

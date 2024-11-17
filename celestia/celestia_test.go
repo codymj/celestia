@@ -178,3 +178,124 @@ func TestRightAscension(t *testing.T) {
 		})
 	}
 }
+
+// Declination tests.
+func TestDeclination(t *testing.T) {
+	tests := []struct {
+		name string
+		jd   float64
+		p    int
+		d    float64
+		err  error
+	}{
+		{"ForEarth", 2453097.0, 2, 4.740184662324431, nil},
+		{"ForMars", 2453097.0, 3, 5.496702418591823, nil},
+		{"InvalidPlanet", 2453097.0, 12, 0, ErrInvalidEnum},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			d, err := Declination(tt.jd, tt.p)
+			assert.Equal(t, tt.d, d)
+			assert.Equal(t, tt.err, err)
+		})
+	}
+}
+
+// SiderealTime tests.
+func TestSiderealTime(t *testing.T) {
+	tests := []struct {
+		name  string
+		jd    float64
+		p     int
+		lon   float64
+		theta float64
+		err   error
+	}{
+		{"ForEarth", 2453097.0, 2, -5.0, 14.834671999909915, nil},
+		{"ForMars", 2453097.0, 3, 184.6, 33.13916751998477, nil},
+		{"InvalidPlanet", 2453097.0, 12, 34.7, 0, ErrInvalidEnum},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			theta, err := SiderealTime(tt.jd, tt.p, tt.lon)
+			assert.Equal(t, tt.theta, theta)
+			assert.Equal(t, tt.err, err)
+		})
+	}
+}
+
+// HourAngle tests.
+func TestHourAngle(t *testing.T) {
+	tests := []struct {
+		name string
+		jd   float64
+		p    int
+		lon  float64
+		H    float64
+		err  error
+	}{
+		{"ForEarth", 2453097.0, 2, -5.0, 3.76980128420956, nil},
+		{"ForMars", 2453097.0, 3, 184.6, 21.278579105151533, nil},
+		{"InvalidPlanet", 2453097.0, 12, 34.7, 0, ErrInvalidEnum},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			H, err := HourAngle(tt.jd, tt.p, tt.lon)
+			assert.Equal(t, tt.H, H)
+			assert.Equal(t, tt.err, err)
+		})
+	}
+}
+
+// Azimuth tests.
+func TestAzimuth(t *testing.T) {
+	tests := []struct {
+		name string
+		jd   float64
+		p    int
+		lat  float64
+		lon  float64
+		A    float64
+		err  error
+	}{
+		{"ForEarth", 2453097.0, 2, 52.0, -5.0, 5.109917114922145, nil},
+		{"ForMars", 2453097.0, 3, -14.6, 184.6, 132.10875118644827, nil},
+		{"InvalidPlanet", 2453097.0, 12, -45, 34.7, 0, ErrInvalidEnum},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			A, err := Azimuth(tt.jd, tt.p, tt.lat, tt.lon)
+			assert.Equal(t, tt.A, A)
+			assert.Equal(t, tt.err, err)
+		})
+	}
+}
+
+// Azimuth tests.
+func TestAltitude(t *testing.T) {
+	tests := []struct {
+		name string
+		jd   float64
+		p    int
+		lat  float64
+		lon  float64
+		h    float64
+		err  error
+	}{
+		{"ForEarth", 2453097.0, 2, 52.0, -5.0, 42.63670285961314, nil},
+		{"ForMars", 2453097.0, 3, -14.6, 184.6, 60.861557344577825, nil},
+		{"InvalidPlanet", 2453097.0, 12, -45, 34.7, 0, ErrInvalidEnum},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			h, err := Altitude(tt.jd, tt.p, tt.lat, tt.lon)
+			assert.Equal(t, tt.h, h)
+			assert.Equal(t, tt.err, err)
+		})
+	}
+}
