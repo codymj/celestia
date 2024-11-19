@@ -70,18 +70,18 @@ func TestPerihelionLongitude(t *testing.T) {
 	tests := []struct {
 		name string
 		p    int
-		w    float64
+		P    float64
 		err  error
 	}{
-		{"ForEarth", 2, WEarth, nil},
-		{"ForMars", 3, WMars, nil},
+		{"ForEarth", 2, PEarth, nil},
+		{"ForMars", 3, PMars, nil},
 		{"InvalidPlanet", 12, 0, ErrInvalidEnum},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			w, err := PerihelionLongitude(tt.p)
-			assert.Equal(t, tt.w, w)
+			P, err := PerihelionLongitude(tt.p)
+			assert.Equal(t, tt.P, P)
 			assert.Equal(t, tt.err, err)
 		})
 	}
@@ -295,6 +295,30 @@ func TestAltitude(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			h, err := Altitude(tt.jd, tt.p, tt.lat, tt.lon)
 			assert.Equal(t, tt.h, h)
+			assert.Equal(t, tt.err, err)
+		})
+	}
+}
+
+// Transit tests.
+func TestTransit(t *testing.T) {
+	tests := []struct {
+		name      string
+		jd        float64
+		p         int
+		lon       float64
+		J_transit float64
+		err       error
+	}{
+		{"ForEarth", 2453097.0, 2, -5.0, 2.4530969895304884e+06, nil},
+		{"ForMars", 2453097.0, 3, 184.6, 2.453096939282806e+06, nil},
+		{"InvalidPlanet", 2453097.0, 12, -45, 0, ErrInvalidEnum},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			J_transit, err := Transit(tt.jd, tt.p, tt.lon)
+			assert.Equal(t, tt.J_transit, J_transit)
 			assert.Equal(t, tt.err, err)
 		})
 	}

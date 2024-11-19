@@ -40,7 +40,7 @@ orbit of the same period.
 | jd        | julian day   |
 | p         | planet enum  |
 
-### PerihelionLongitude (w)
+### PerihelionLongitude (P)
 
 The sum of the longitude of ascending node (measured on the ecliptic plane) and
 the argument of periapsis (measured on the orbital plane).
@@ -137,6 +137,18 @@ down).
 | jd        | julian day        |
 | p         | planet enum       |
 | lat       | latitude (north)  |
+| lon       | longitude (west)  |
+
+### Transit
+
+Transit of a celestial body is the moment at which the body passes through the
+celestial meridian and is highest in the sky. The hour angle of the body is then
+0.
+
+| parameter | description       |
+|-----------|-------------------|
+| jd        | julian day        |
+| p         | planet enum       |
 | lon       | longitude (west)  |
 
 ## Sources

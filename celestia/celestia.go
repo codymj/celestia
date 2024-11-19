@@ -16,6 +16,7 @@ package celestia
 
 import (
 	"errors"
+	"fmt"
 	"math"
 
 	"github.com/codymj/celestia/julian"
@@ -48,15 +49,15 @@ const (
 	ESaturn  = 26.7285
 
 	// PerihelionLongitude
-	WMercury = 230.3265
-	WVenus   = 73.7576
-	WEarth   = 102.9373
-	WMars    = 71.0041
-	WJupiter = 237.1015
-	WSaturn  = 99.4587
-	WUranus  = 5.4634
-	WNeptune = 182.2100
-	WPluto   = 184.5484
+	PMercury = 230.3265
+	PVenus   = 73.7576
+	PEarth   = 102.9373
+	PMars    = 71.0041
+	PJupiter = 237.1015
+	PSaturn  = 99.4587
+	PUranus  = 5.4634
+	PNeptune = 182.2100
+	PPluto   = 184.5484
 
 	// EquationOfCenter
 	C1Mercury = 23.4400
@@ -109,6 +110,32 @@ const (
 	T1Jupiter = 870.5360000
 	T0Saturn  = 174.3508
 	T1Saturn  = 810.7939024
+
+	// SolarTransit
+	J0Mercury = 45.3497
+	J1Mercury = 11.4556
+	J2Mercury = 0.0000
+	J3Mercury = 175.9386
+	J0Venus   = 52.1268
+	J1Venus   = -0.2516
+	J2Venus   = 0.0099
+	J3Venus   = -116.7505
+	J0Earth   = 0.0009
+	J1Earth   = 0.0053
+	J2Earth   = -0.0068
+	J3Earth   = 1.0000
+	J0Mars    = 0.9047
+	J1Mars    = 0.0305
+	J2Mars    = -0.0082
+	J3Mars    = 1.027491
+	J0Jupiter = 0.3345
+	J1Jupiter = 0.0064
+	J2Jupiter = 0.0000
+	J3Jupiter = 0.4135778
+	J0Saturn  = 0.0766
+	J1Saturn  = 0.0078
+	J2Saturn  = -0.0040
+	J3Saturn  = 0.4440276
 )
 
 var (
@@ -173,33 +200,33 @@ func ObliquityEcliptic(p int) (float64, error) {
 	return e, err
 }
 
-// Perihelion longitude (w) is the sum of the longitude of ascending node
+// Perihelion longitude (P) is the sum of the longitude of ascending node
 // (measured on the ecliptic plane) and the argument of periapsis (measured on
 // the orbital plane).
 //
 // p: enum of planet (see README).
 func PerihelionLongitude(p int) (float64, error) {
-	var w float64
+	var P float64
 	var err error
 
 	switch p {
 	case 0:
-		w = WMercury
+		P = PMercury
 	case 1:
-		w = WVenus
+		P = PVenus
 	case 2:
-		w = WEarth
+		P = PEarth
 	case 3:
-		w = WMars
+		P = PMars
 	case 4:
-		w = WJupiter
+		P = PJupiter
 	case 5:
-		w = WSaturn
+		P = PSaturn
 	default:
 		err = ErrInvalidEnum
 	}
 
-	return w, err
+	return P, err
 }
 
 // Equation of center (C) is the angular difference between the actual position
@@ -482,4 +509,86 @@ func Altitude(jd float64, p int, lat, lon float64) (float64, error) {
 	) * DEG
 
 	return h, err
+}
+
+// Transit (J_transit) of a celestial body is the moment at which the body
+// passes through the celestial meridian and is highest in the sky. The hour
+// angle (H) of the body is then 0.
+func Transit(jd float64, p int, lon float64) (float64, error) {
+	l, err := EclipticLongitude(jd, p)
+	if err != nil {
+		return 0, err
+	}
+
+	var J0, J1, J2, J3 float64
+	var J_transit float64
+
+	switch p {
+	case 0:
+		J3 = 360.0 / (T1Mercury - M1Mercury)
+		J0 = (M0Mercury + PMercury + 180 - T0Mercury) * (J3 / 360.0)
+		J1 = C1Mercury * (J3 / 360.0)
+		J2 = 0
+	case 1:
+		J3 = 360.0 / (T1Venus - M1Venus)
+		J0 = (M0Venus + PVenus + 180 - T0Venus) * (J3 / 360.0)
+		J1 = C1Venus * (J3 / 360.0)
+		J2 = -0.0304 * (J3 / 360.0)
+	case 2:
+		J3 = 360.0 / (T1Earth - M1Earth)
+		J0 = (M0Earth + PEarth + 180 - T0Earth) * (J3 / 360.0)
+		J1 = C1Earth * (J3 / 360.0)
+		J2 = -2.4657 * (J3 / 360.0)
+	case 3:
+		J3 = 360.0 / (T1Mars - M1Mars)
+		J0 = (M0Mars + PMars + 180 - T0Mars) * (J3 / 360.0)
+		J1 = C1Mars * (J3 / 360.0)
+		J2 = -2.8608 * (J3 / 360.0)
+	case 4:
+		J3 = 360.0 / (T1Jupiter - M1Jupiter)
+		J0 = (M0Jupiter + PJupiter + 180 - T0Jupiter) * (J3 / 360.0)
+		J1 = C1Jupiter * (J3 / 360.0)
+		J2 = -2.8608 * (J3 / 360.0)
+	case 5:
+		J3 = 360.0 / (T1Saturn - M1Saturn)
+		J0 = (M0Saturn + PSaturn + 180 - T0Saturn) * (J3 / 360.0)
+		J1 = C1Saturn * (J3 / 360.0)
+		J2 = -2.8608 * (J3 / 360.0)
+	default:
+		err = ErrInvalidEnum
+	}
+
+	M, err := MeanAnomaly(jd, p)
+	if err != nil {
+		return 0, err
+	}
+
+	var n float64
+	n_x := (jd-julian.J2000-J0)/J3 - lon/360.0
+	if n_x-math.Floor(n_x) >= 0.5 {
+		n = math.Ceil(n_x)
+	} else {
+		n = math.Floor(n_x)
+	}
+
+	J_transit = jd + J3*(n-n_x) + J1*math.Sin(M*RAD) + J2*math.Sin(2*l*RAD)
+
+	// Refine the transit time until it holds steady up to 6 decimal places.
+	J_str := fmt.Sprintf("%.6f", J_transit)
+	for {
+		H, err := HourAngle(J_transit, p, lon)
+		if err != nil {
+			return 0, err
+		}
+
+		J_transit -= (H / 360.0) * J3
+		if J_str == fmt.Sprintf("%.6f", J_transit) {
+			// Hour angle is sufficiently close to zero at this point.
+			break
+		}
+
+		J_str = fmt.Sprintf("%.6f", J_transit)
+	}
+
+	return J_transit, err
 }
