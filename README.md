@@ -151,8 +151,34 @@ celestial meridian and is highest in the sky. The hour angle of the body is then
 | p         | planet enum       |
 | lon       | longitude (west)  |
 
+### Sunrise
+
+Sunrise (J_rise) is the moment at which the top of the solar disk touches the
+horizon in the morning, taking into account refraction and solar disk size.
+
+| parameter | description       |
+|-----------|-------------------|
+| jd        | julian day        |
+| p         | planet enum       |
+| lat       | latitude (north)  |
+| lon       | longitude (west)  |
+
+### Sunset
+
+Sunset (J_set) is the moment at which the top of the solar disk touches the
+horizon in the evening, taking into account refraction and solar disk size.
+
+| parameter | description       |
+|-----------|-------------------|
+| jd        | julian day        |
+| p         | planet enum       |
+| lat       | latitude (north)  |
+| lon       | longitude (west)  |
+
 ## Sources
 
 - [Astronomy Answers](https://aa.quae.nl/)
-- David W. Hughes, B. D. Yallop, C. Y. Hohenkerk, The Equation of Time, Monthly Notices of the Royal Astronomical Society, Volume 238, Issue 4, June 1989, Pages 1529–1535, [https://doi.org/10.1093/mnras/238.4.1529](https://doi.org/10.1093/mnras/238.4.1529)
+- David W. Hughes, B. D. Yallop, C. Y. Hohenkerk, The Equation of Time, Monthly
+Notices of the Royal Astronomical Society, Volume 238, Issue 4, June 1989, Pages
+1529–1535, [https://doi.org/10.1093/mnras/238.4.1529](https://doi.org/10.1093/mnras/238.4.1529)
 - [NOAA Solar Calculator](https://gml.noaa.gov/grad/solcalc/)

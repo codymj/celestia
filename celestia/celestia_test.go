@@ -323,3 +323,53 @@ func TestTransit(t *testing.T) {
 		})
 	}
 }
+
+// Sunrise tests.
+func TestSunrise(t *testing.T) {
+	tests := []struct {
+		name   string
+		jd     float64
+		p      int
+		lat    float64
+		lon    float64
+		J_rise float64
+		err    error
+	}{
+		{"ForEarth", 2453097.0, 2, 52, -5.0, 2.4530967190208086e+06, nil},
+		{"ForMars", 2453097.0, 3, -14.6, 184.6, 2.453096686034785e+06, nil},
+		{"InvalidPlanet", 2453097.0, 23, 12, -45, 0, ErrInvalidEnum},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			J_rise, err := Sunrise(tt.jd, tt.p, tt.lat, tt.lon)
+			assert.Equal(t, tt.J_rise, J_rise)
+			assert.Equal(t, tt.err, err)
+		})
+	}
+}
+
+// Sunset tests.
+func TestSunset(t *testing.T) {
+	tests := []struct {
+		name  string
+		jd    float64
+		p     int
+		lat   float64
+		lon   float64
+		J_set float64
+		err   error
+	}{
+		{"ForEarth", 2453097.0, 2, 52, -5.0, 2.4530972600402692e+06, nil},
+		{"ForMars", 2453097.0, 3, -14.6, 184.6, 2.453097192530769e+06, nil},
+		{"InvalidPlanet", 2453097.0, 23, 12, -45, 0, ErrInvalidEnum},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			J_set, err := Sunset(tt.jd, tt.p, tt.lat, tt.lon)
+			assert.Equal(t, tt.J_set, J_set)
+			assert.Equal(t, tt.err, err)
+		})
+	}
+}

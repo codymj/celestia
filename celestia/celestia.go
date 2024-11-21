@@ -136,11 +136,36 @@ const (
 	J1Saturn  = 0.0078
 	J2Saturn  = -0.0040
 	J3Saturn  = 0.4440276
+
+	// Sunrise/Sunset
+	h_0Mercury   = -0.69
+	d_SunMercury = 1.38
+	h_0Venus     = -0.37
+	d_SunVenus   = 0.74
+	h_0Earth     = -0.83
+	d_SunEarth   = 0.53
+	h_0Mars      = -0.17
+	d_SunMars    = 0.35
+	h_0Jupiter   = -0.05
+	d_SunJupiter = 0.10
+	h_0Saturn    = -0.03
+	d_SunSaturn  = 0.06
 )
 
 var (
 	ErrInvalidEnum = errors.New("invalid planet enum, see README")
 )
+
+// Normalizes angles to be between -90 degrees and 90 degrees.
+func normalize90(angle float64) float64 {
+	if angle > 180.0 {
+		angle -= 360.0
+	} else if angle < -180.0 {
+		angle += 360.0
+	}
+
+	return angle
+}
 
 // Mean anomaly (M) calculates the position that the planet would have relative
 // to its perihelion if the orbit were a circle.
@@ -555,7 +580,7 @@ func Transit(jd float64, p int, lon float64) (float64, error) {
 		J1 = C1Saturn * (J3 / 360.0)
 		J2 = -2.8608 * (J3 / 360.0)
 	default:
-		err = ErrInvalidEnum
+		return 0, ErrInvalidEnum
 	}
 
 	M, err := MeanAnomaly(jd, p)
@@ -591,4 +616,160 @@ func Transit(jd float64, p int, lon float64) (float64, error) {
 	}
 
 	return J_transit, err
+}
+
+// Sunrise (J_rise) is the moment at which the top of the solar disk touches the
+// horizon in the morning, taking into account refraction and solar disk size.
+func Sunrise(jd float64, p int, lat, lon float64) (float64, error) {
+	d, err := Declination(jd, p)
+	if err != nil {
+		return 0, err
+	}
+
+	var H_rise, J3 float64
+
+	switch p {
+	case 0:
+		H_rise = math.Acos(
+			(math.Sin(h_0Mercury*RAD)-math.Sin(lat*RAD)*math.Sin(d*RAD))/
+				math.Cos(lat*RAD)*math.Cos(d*RAD),
+		) * DEG
+		J3 = 360.0 / (T1Mercury - M1Mercury)
+	case 1:
+		H_rise = math.Acos(
+			(math.Sin(h_0Venus*RAD)-math.Sin(lat*RAD)*math.Sin(d*RAD))/
+				math.Cos(lat*RAD)*math.Cos(d*RAD),
+		) * DEG
+		J3 = 360.0 / (T1Venus - M1Venus)
+	case 2:
+		H_rise = math.Acos(
+			(math.Sin(h_0Earth*RAD)-math.Sin(lat*RAD)*math.Sin(d*RAD))/
+				math.Cos(lat*RAD)*math.Cos(d*RAD),
+		) * DEG
+		J3 = 360.0 / (T1Earth - M1Earth)
+	case 3:
+		H_rise = math.Acos(
+			(math.Sin(h_0Mars*RAD)-math.Sin(lat*RAD)*math.Sin(d*RAD))/
+				math.Cos(lat*RAD)*math.Cos(d*RAD),
+		) * DEG
+		J3 = 360.0 / (T1Mars - M1Mars)
+	case 4:
+		H_rise = math.Acos(
+			(math.Sin(h_0Jupiter*RAD)-math.Sin(lat*RAD)*math.Sin(d*RAD))/
+				math.Cos(lat*RAD)*math.Cos(d*RAD),
+		) * DEG
+		J3 = 360.0 / (T1Jupiter - M1Jupiter)
+	case 5:
+		H_rise = math.Acos(
+			(math.Sin(h_0Saturn*RAD)-math.Sin(lat*RAD)*math.Sin(d*RAD))/
+				math.Cos(lat*RAD)*math.Cos(d*RAD),
+		) * DEG
+		J3 = 360.0 / (T1Saturn - M1Saturn)
+	default:
+		return 0, ErrInvalidEnum
+	}
+
+	J_transit, err := Transit(jd, p, lon)
+	if err != nil {
+		return 0, err
+	}
+
+	J_rise := J_transit - (H_rise/360.0)*J3
+
+	// Refine the sunrise time until it holds steady up to 6 decimal places.
+	str := fmt.Sprintf("%.6f", J_rise)
+	for {
+		H, err := HourAngle(J_rise, p, lon)
+		if err != nil {
+			return 0, err
+		}
+		H = normalize90(H)
+
+		J_rise -= ((H + H_rise) / 360.0) * J3
+		if str == fmt.Sprintf("%.6f", J_rise) {
+			break
+		}
+
+		str = fmt.Sprintf("%.6f", J_rise)
+	}
+
+	return J_rise, err
+}
+
+// Sunset (J_set) is the moment at which the top of the solar disk touches the
+// horizon in the evening, taking into account refraction and solar disk size.
+func Sunset(jd float64, p int, lat, lon float64) (float64, error) {
+	d, err := Declination(jd, p)
+	if err != nil {
+		return 0, err
+	}
+
+	var H_set, J3 float64
+
+	switch p {
+	case 0:
+		H_set = math.Acos(
+			(math.Sin(h_0Mercury*RAD)-math.Sin(lat*RAD)*math.Sin(d*RAD))/
+				math.Cos(lat*RAD)*math.Cos(d*RAD),
+		) * DEG
+		J3 = 360.0 / (T1Mercury - M1Mercury)
+	case 1:
+		H_set = math.Acos(
+			(math.Sin(h_0Venus*RAD)-math.Sin(lat*RAD)*math.Sin(d*RAD))/
+				math.Cos(lat*RAD)*math.Cos(d*RAD),
+		) * DEG
+		J3 = 360.0 / (T1Venus - M1Venus)
+	case 2:
+		H_set = math.Acos(
+			(math.Sin(h_0Earth*RAD)-math.Sin(lat*RAD)*math.Sin(d*RAD))/
+				math.Cos(lat*RAD)*math.Cos(d*RAD),
+		) * DEG
+		J3 = 360.0 / (T1Earth - M1Earth)
+	case 3:
+		H_set = math.Acos(
+			(math.Sin(h_0Mars*RAD)-math.Sin(lat*RAD)*math.Sin(d*RAD))/
+				math.Cos(lat*RAD)*math.Cos(d*RAD),
+		) * DEG
+		J3 = 360.0 / (T1Mars - M1Mars)
+	case 4:
+		H_set = math.Acos(
+			(math.Sin(h_0Jupiter*RAD)-math.Sin(lat*RAD)*math.Sin(d*RAD))/
+				math.Cos(lat*RAD)*math.Cos(d*RAD),
+		) * DEG
+		J3 = 360.0 / (T1Jupiter - M1Jupiter)
+	case 5:
+		H_set = math.Acos(
+			(math.Sin(h_0Saturn*RAD)-math.Sin(lat*RAD)*math.Sin(d*RAD))/
+				math.Cos(lat*RAD)*math.Cos(d*RAD),
+		) * DEG
+		J3 = 360.0 / (T1Saturn - M1Saturn)
+	default:
+		return 0, ErrInvalidEnum
+	}
+
+	J_transit, err := Transit(jd, p, lon)
+	if err != nil {
+		return 0, err
+	}
+
+	J_set := J_transit + (H_set/360.0)*J3
+
+	// Refine the sunrise time until it holds steady up to 6 decimal places.
+	str := fmt.Sprintf("%.6f", J_set)
+	for {
+		H, err := HourAngle(J_set, p, lon)
+		if err != nil {
+			return 0, err
+		}
+		H = normalize90(H)
+
+		J_set -= ((H - H_set) / 360.0) * J3
+		if str == fmt.Sprintf("%.6f", J_set) {
+			break
+		}
+
+		str = fmt.Sprintf("%.6f", J_set)
+	}
+
+	return J_set, err
 }
