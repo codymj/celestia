@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package celestia
+package solarposition
 
 import (
 	"errors"
@@ -156,8 +156,8 @@ var (
 	ErrInvalidEnum = errors.New("invalid planet enum, see README")
 )
 
-// Normalizes angles to be between -90 degrees and 90 degrees.
-func normalize90(angle float64) float64 {
+// Normalizes angles to be between -180 degrees and 180 degrees.
+func normalize180(angle float64) float64 {
 	if angle > 180.0 {
 		angle -= 360.0
 	} else if angle < -180.0 {
@@ -536,10 +536,16 @@ func Altitude(jd float64, p int, lat, lon float64) (float64, error) {
 	return h, err
 }
 
-// Transit (J_transit) of a celestial body is the moment at which the body
+// Transit time (J_transit) of a celestial body is the moment at which the body
 // passes through the celestial meridian and is highest in the sky. The hour
 // angle (H) of the body is then 0.
-func Transit(jd float64, p int, lon float64) (float64, error) {
+//
+// jd: julian day.
+//
+// p: enum of the planet (see README).
+//
+// lon: longitude (west).
+func TransitTime(jd float64, p int, lon float64) (float64, error) {
 	l, err := EclipticLongitude(jd, p)
 	if err != nil {
 		return 0, err
@@ -618,9 +624,18 @@ func Transit(jd float64, p int, lon float64) (float64, error) {
 	return J_transit, err
 }
 
-// Sunrise (J_rise) is the moment at which the top of the solar disk touches the
-// horizon in the morning, taking into account refraction and solar disk size.
-func Sunrise(jd float64, p int, lat, lon float64) (float64, error) {
+// Sunrise time (J_rise) is the moment at which the top of the solar disk
+// touches the horizon in the morning, taking into account refraction and solar
+// disk size.
+//
+// jd: julian day.
+//
+// p: enum of the planet (see README).
+//
+// lat: latitude (north)
+//
+// lon: longitude (west).
+func SunriseTime(jd float64, p int, lat, lon float64) (float64, error) {
 	d, err := Declination(jd, p)
 	if err != nil {
 		return 0, err
@@ -669,7 +684,7 @@ func Sunrise(jd float64, p int, lat, lon float64) (float64, error) {
 		return 0, ErrInvalidEnum
 	}
 
-	J_transit, err := Transit(jd, p, lon)
+	J_transit, err := TransitTime(jd, p, lon)
 	if err != nil {
 		return 0, err
 	}
@@ -683,7 +698,7 @@ func Sunrise(jd float64, p int, lat, lon float64) (float64, error) {
 		if err != nil {
 			return 0, err
 		}
-		H = normalize90(H)
+		H = normalize180(H)
 
 		J_rise -= ((H + H_rise) / 360.0) * J3
 		if str == fmt.Sprintf("%.6f", J_rise) {
@@ -696,9 +711,18 @@ func Sunrise(jd float64, p int, lat, lon float64) (float64, error) {
 	return J_rise, err
 }
 
-// Sunset (J_set) is the moment at which the top of the solar disk touches the
-// horizon in the evening, taking into account refraction and solar disk size.
-func Sunset(jd float64, p int, lat, lon float64) (float64, error) {
+// Sunset time (J_set) is the moment at which the top of the solar disk touches
+// the horizon in the evening, taking into account refraction and solar disk
+// size.
+//
+// jd: julian day.
+//
+// p: enum of the planet (see README).
+//
+// lat: latitude (north)
+//
+// lon: longitude (west).
+func SunsetTime(jd float64, p int, lat, lon float64) (float64, error) {
 	d, err := Declination(jd, p)
 	if err != nil {
 		return 0, err
@@ -747,7 +771,7 @@ func Sunset(jd float64, p int, lat, lon float64) (float64, error) {
 		return 0, ErrInvalidEnum
 	}
 
-	J_transit, err := Transit(jd, p, lon)
+	J_transit, err := TransitTime(jd, p, lon)
 	if err != nil {
 		return 0, err
 	}
@@ -761,7 +785,7 @@ func Sunset(jd float64, p int, lat, lon float64) (float64, error) {
 		if err != nil {
 			return 0, err
 		}
-		H = normalize90(H)
+		H = normalize180(H)
 
 		J_set -= ((H - H_set) / 360.0) * J3
 		if str == fmt.Sprintf("%.6f", J_set) {

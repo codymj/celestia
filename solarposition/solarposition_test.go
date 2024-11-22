@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package celestia
+package solarposition
 
 import (
 	"testing"
@@ -317,7 +317,7 @@ func TestTransit(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			J_transit, err := Transit(tt.jd, tt.p, tt.lon)
+			J_transit, err := TransitTime(tt.jd, tt.p, tt.lon)
 			assert.Equal(t, tt.J_transit, J_transit)
 			assert.Equal(t, tt.err, err)
 		})
@@ -342,7 +342,7 @@ func TestSunrise(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			J_rise, err := Sunrise(tt.jd, tt.p, tt.lat, tt.lon)
+			J_rise, err := SunriseTime(tt.jd, tt.p, tt.lat, tt.lon)
 			assert.Equal(t, tt.J_rise, J_rise)
 			assert.Equal(t, tt.err, err)
 		})
@@ -367,7 +367,7 @@ func TestSunset(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			J_set, err := Sunset(tt.jd, tt.p, tt.lat, tt.lon)
+			J_set, err := SunsetTime(tt.jd, tt.p, tt.lat, tt.lon)
 			assert.Equal(t, tt.J_set, J_set)
 			assert.Equal(t, tt.err, err)
 		})

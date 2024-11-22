@@ -2,7 +2,10 @@
 
 A Go library for calculating planetary positions in the Solar system.
 
-## Data
+## Solar Position
+
+The goal for this package is for calculating sunrise, sunset and solar noon
+times for any location on the Earth.
 
 ### Planet Enumeration
 
@@ -139,11 +142,11 @@ down).
 | lat       | latitude (north)  |
 | lon       | longitude (west)  |
 
-### Transit
+### Transit (J_transit)
 
-Transit of a celestial body is the moment at which the body passes through the
-celestial meridian and is highest in the sky. The hour angle of the body is then
-0.
+Transit (J_transit) of a celestial body is the moment at which the body passes
+through the celestial meridian and is highest in the sky. The hour angle of the
+body is then 0.
 
 | parameter | description       |
 |-----------|-------------------|
@@ -151,7 +154,7 @@ celestial meridian and is highest in the sky. The hour angle of the body is then
 | p         | planet enum       |
 | lon       | longitude (west)  |
 
-### Sunrise
+### Sunrise (J_rise)
 
 Sunrise (J_rise) is the moment at which the top of the solar disk touches the
 horizon in the morning, taking into account refraction and solar disk size.
@@ -163,7 +166,7 @@ horizon in the morning, taking into account refraction and solar disk size.
 | lat       | latitude (north)  |
 | lon       | longitude (west)  |
 
-### Sunset
+### Sunset (J_set)
 
 Sunset (J_set) is the moment at which the top of the solar disk touches the
 horizon in the evening, taking into account refraction and solar disk size.
