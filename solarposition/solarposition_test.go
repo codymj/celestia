@@ -275,7 +275,7 @@ func TestAzimuth(t *testing.T) {
 	}
 }
 
-// Azimuth tests.
+// Altitude tests.
 func TestAltitude(t *testing.T) {
 	tests := []struct {
 		name string
